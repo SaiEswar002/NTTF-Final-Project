@@ -1,0 +1,37 @@
+# NTTF Final Year Project - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Computer Vision & Hand Tracking
+opencv-python>=4.8.0
+mediapipe>=0.10.0
+
+# Numerical & Image Processing
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# GUI Automation & Mouse/Keyboard Control
+pyautogui>=0.9.54
+pynput>=1.7.6
+
+# Windows Audio Control
+comtypes>=1.2.0
+pycaw>=20230408
+
+# Screen Brightness Control (Windows)
+screen-brightness-control>=0.23.0
+
+# HTTP Requests
+requests>=2.31.0
+
+# News API
+newsapi-python>=0.2.7
+
+# Protobuf (required by mediapipe)
+protobuf>=3.20.0
+
+# Map Visualization
+folium>=0.14.0
+
+# Qt GUI (for viewingmap.py)
+PyQt5>=5.15.9
+PyQtWebEngine>=5.15.6
