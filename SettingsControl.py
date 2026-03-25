@@ -25,46 +25,45 @@ volMin, volMax = volume.GetVolumeRange()[:2]
 
 while True:
     success, img = cap.read()
+    if not success:
+        print("Failed to capture frame.")
+        break
+
     img = cv2.flip(img, 1)
     imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     results = hands.process(imgRGB)
 
     left_lmList, right_lmList = [], []
     if results.multi_hand_landmarks and results.multi_handedness:
-        for i in results.multi_handedness:
-            label = MessageToDict(i)['classification'][0]['label']
-            if label == 'Left':
-                for lm in results.multi_hand_landmarks[0].landmark:
-                    h, w, _ = img.shape
-                    left_lmList.append([int(lm.x * w), int(lm.y * h)])
-                mpDraw.draw_landmarks(img, results.multi_hand_landmarks[0], mpHands.HAND_CONNECTIONS)
-            if label == 'Right':
-                index = 0
-                if len(results.multi_hand_landmarks) == 2:
-                    index = 1
-                for lm in results.multi_hand_landmarks[index].landmark:
-                    h, w, _ = img.shape
-                    right_lmList.append([int(lm.x * w), int(lm.y * h)])
-                    mpDraw.draw_landmarks(img, results.multi_hand_landmarks[index], mpHands.HAND_CONNECTIONS)
+        for idx, handedness in enumerate(results.multi_handedness):
+            label = MessageToDict(handedness)['classification'][0]['label']
+            hand_lms = results.multi_hand_landmarks[idx]
+            h, w, _ = img.shape
 
-    if left_lmList != []:
+            lm_coords = [[int(lm.x * w), int(lm.y * h)] for lm in hand_lms.landmark]
+            mpDraw.draw_landmarks(img, hand_lms, mpHands.HAND_CONNECTIONS)
+
+            if label == 'Left':
+                left_lmList = lm_coords
+            elif label == 'Right':
+                right_lmList = lm_coords
+
+    if left_lmList:
         x1, y1 = left_lmList[4][0], left_lmList[4][1]
         x2, y2 = left_lmList[8][0], left_lmList[8][1]
 
         cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
-
         length = hypot(x2 - x1, y2 - y1)
 
         bright = np.interp(length, [15, 200], [0, 100])
-        print(bright, length)
+        print(f"Brightness: {int(bright)}  Length: {length:.1f}")
         sbc.set_brightness(int(bright))
 
-    if right_lmList != []:
+    if right_lmList:
         x1, y1 = right_lmList[4][0], right_lmList[4][1]
         x2, y2 = right_lmList[8][0], right_lmList[8][1]
 
         cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
-
         length = hypot(x2 - x1, y2 - y1)
 
         vol = np.interp(length, [15, 200], [volMin, volMax])
@@ -73,10 +72,11 @@ while True:
         except Exception as e:
             print("Error setting volume:", e)
 
-# Debug output
-        print("Volume level:", vol, "Length:", length)
-
+        print(f"Volume level: {vol:.2f}  Length: {length:.1f}")
 
     cv2.imshow('Image', img)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
+
+cap.release()
+cv2.destroyAllWindows()
